@@ -1,10 +1,10 @@
-package gorm_test
+package orm_test
 
 import (
 	"fmt"
 	"reflect"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 
 	"testing"
 	"time"
@@ -89,7 +89,7 @@ func TestUIntPrimaryKey(t *testing.T) {
 
 func TestStringPrimaryKeyForNumericValueStartingWithZero(t *testing.T) {
 	type AddressByZipCode struct {
-		ZipCode string `gorm:"primary_key"`
+		ZipCode string `orm:"primary_key"`
 		Address string
 	}
 
@@ -326,7 +326,7 @@ func TestOrderAndPluck(t *testing.T) {
 	scopedb := DB.Model(&User{}).Where("name like ?", "%OrderPluckUser%")
 
 	var user User
-	scopedb.Order(gorm.Expr("case when name = ? then 0 else 1 end", "OrderPluckUser2")).First(&user)
+	scopedb.Order(orm.Expr("case when name = ? then 0 else 1 end", "OrderPluckUser2")).First(&user)
 	if user.Name != "OrderPluckUser2" {
 		t.Errorf("Order with sql expression")
 	}
@@ -641,7 +641,7 @@ func TestSelectWithEscapedFieldName(t *testing.T) {
 func TestSelectWithVariables(t *testing.T) {
 	DB.Save(&User{Name: "jinzhu"})
 
-	rows, _ := DB.Table("users").Select("? as fake", gorm.Expr("name")).Rows()
+	rows, _ := DB.Table("users").Select("? as fake", orm.Expr("name")).Rows()
 
 	if !rows.Next() {
 		t.Errorf("Should have returned at least one row")

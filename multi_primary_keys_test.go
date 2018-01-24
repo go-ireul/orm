@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import (
 	"os"
@@ -8,20 +8,20 @@ import (
 )
 
 type Blog struct {
-	ID         uint   `gorm:"primary_key"`
-	Locale     string `gorm:"primary_key"`
+	ID         uint   `orm:"primary_key"`
+	Locale     string `orm:"primary_key"`
 	Subject    string
 	Body       string
-	Tags       []Tag `gorm:"many2many:blog_tags;"`
-	SharedTags []Tag `gorm:"many2many:shared_blog_tags;ForeignKey:id;AssociationForeignKey:id"`
-	LocaleTags []Tag `gorm:"many2many:locale_blog_tags;ForeignKey:id,locale;AssociationForeignKey:id"`
+	Tags       []Tag `orm:"many2many:blog_tags;"`
+	SharedTags []Tag `orm:"many2many:shared_blog_tags;ForeignKey:id;AssociationForeignKey:id"`
+	LocaleTags []Tag `orm:"many2many:locale_blog_tags;ForeignKey:id,locale;AssociationForeignKey:id"`
 }
 
 type Tag struct {
-	ID     uint   `gorm:"primary_key"`
-	Locale string `gorm:"primary_key"`
+	ID     uint   `orm:"primary_key"`
+	Locale string `orm:"primary_key"`
 	Value  string
-	Blogs  []*Blog `gorm:"many2many:blogs_tags"`
+	Blogs  []*Blog `orm:"many2many:blogs_tags"`
 }
 
 func compareTags(tags []Tag, contents []string) bool {
@@ -35,7 +35,7 @@ func compareTags(tags []Tag, contents []string) bool {
 }
 
 func TestManyToManyWithMultiPrimaryKeys(t *testing.T) {
-	if dialect := os.Getenv("GORM_DIALECT"); dialect != "" && dialect != "sqlite" && dialect != "mssql" {
+	if dialect := os.Getenv("ORM_DIALECT"); dialect != "" && dialect != "sqlite" && dialect != "mssql" {
 		DB.DropTable(&Blog{}, &Tag{})
 		DB.DropTable("blog_tags")
 		DB.CreateTable(&Blog{}, &Tag{})
@@ -119,7 +119,7 @@ func TestManyToManyWithMultiPrimaryKeys(t *testing.T) {
 }
 
 func TestManyToManyWithCustomizedForeignKeys(t *testing.T) {
-	if dialect := os.Getenv("GORM_DIALECT"); dialect != "" && dialect != "sqlite" && dialect != "mssql" {
+	if dialect := os.Getenv("ORM_DIALECT"); dialect != "" && dialect != "sqlite" && dialect != "mssql" {
 		DB.DropTable(&Blog{}, &Tag{})
 		DB.DropTable("shared_blog_tags")
 		DB.CreateTable(&Blog{}, &Tag{})
@@ -236,7 +236,7 @@ func TestManyToManyWithCustomizedForeignKeys(t *testing.T) {
 }
 
 func TestManyToManyWithCustomizedForeignKeys2(t *testing.T) {
-	if dialect := os.Getenv("GORM_DIALECT"); dialect != "" && dialect != "sqlite" && dialect != "mssql" {
+	if dialect := os.Getenv("ORM_DIALECT"); dialect != "" && dialect != "sqlite" && dialect != "mssql" {
 		DB.DropTable(&Blog{}, &Tag{})
 		DB.DropTable("locale_blog_tags")
 		DB.CreateTable(&Blog{}, &Tag{})

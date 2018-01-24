@@ -1,9 +1,9 @@
-package gorm_test
+package orm_test
 
 import (
 	"testing"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
 func TestToDBNameGenerateFriendlyName(t *testing.T) {
@@ -21,12 +21,12 @@ func TestToDBNameGenerateFriendlyName(t *testing.T) {
 		"UUID":     "uuid",
 		"HTTPURL":  "http_url",
 		"HTTP_URL": "http_url",
-		"ThisIsActuallyATestSoWeMayBeAbleToUseThisCodeInGormPackageAlsoIdCanBeUsedAtTheEndAsID": "this_is_actually_a_test_so_we_may_be_able_to_use_this_code_in_gorm_package_also_id_can_be_used_at_the_end_as_id",
+		"ThisIsActuallyATestSoWeMayBeAbleToUseThisCodeInGormPackageAlsoIdCanBeUsedAtTheEndAsID": "this_is_actually_a_test_so_we_may_be_able_to_use_this_code_in_orm_package_also_id_can_be_used_at_the_end_as_id",
 	}
 
 	for key, value := range maps {
-		if gorm.ToDBName(key) != value {
-			t.Errorf("%v ToDBName should equal %v, but got %v", key, value, gorm.ToDBName(key))
+		if orm.ToDBName(key) != value {
+			t.Errorf("%v ToDBName should equal %v, but got %v", key, value, orm.ToDBName(key))
 		}
 	}
 }

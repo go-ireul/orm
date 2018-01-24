@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 import (
 	"fmt"
@@ -7,15 +7,15 @@ import (
 
 // Define callbacks for creating
 func init() {
-	DefaultCallback.Create().Register("gorm:begin_transaction", beginTransactionCallback)
-	DefaultCallback.Create().Register("gorm:before_create", beforeCreateCallback)
-	DefaultCallback.Create().Register("gorm:save_before_associations", saveBeforeAssociationsCallback)
-	DefaultCallback.Create().Register("gorm:update_time_stamp", updateTimeStampForCreateCallback)
-	DefaultCallback.Create().Register("gorm:create", createCallback)
-	DefaultCallback.Create().Register("gorm:force_reload_after_create", forceReloadAfterCreateCallback)
-	DefaultCallback.Create().Register("gorm:save_after_associations", saveAfterAssociationsCallback)
-	DefaultCallback.Create().Register("gorm:after_create", afterCreateCallback)
-	DefaultCallback.Create().Register("gorm:commit_or_rollback_transaction", commitOrRollbackTransactionCallback)
+	DefaultCallback.Create().Register("orm:begin_transaction", beginTransactionCallback)
+	DefaultCallback.Create().Register("orm:before_create", beforeCreateCallback)
+	DefaultCallback.Create().Register("orm:save_before_associations", saveBeforeAssociationsCallback)
+	DefaultCallback.Create().Register("orm:update_time_stamp", updateTimeStampForCreateCallback)
+	DefaultCallback.Create().Register("orm:create", createCallback)
+	DefaultCallback.Create().Register("orm:force_reload_after_create", forceReloadAfterCreateCallback)
+	DefaultCallback.Create().Register("orm:save_after_associations", saveAfterAssociationsCallback)
+	DefaultCallback.Create().Register("orm:after_create", afterCreateCallback)
+	DefaultCallback.Create().Register("orm:commit_or_rollback_transaction", commitOrRollbackTransactionCallback)
 }
 
 // beforeCreateCallback will invoke `BeforeSave`, `BeforeCreate` method before creating
@@ -62,7 +62,7 @@ func createCallback(scope *Scope) {
 				if field.IsNormal {
 					if field.IsBlank && field.HasDefaultValue {
 						blankColumnsWithDefaultValue = append(blankColumnsWithDefaultValue, scope.Quote(field.DBName))
-						scope.InstanceSet("gorm:blank_columns_with_default_value", blankColumnsWithDefaultValue)
+						scope.InstanceSet("orm:blank_columns_with_default_value", blankColumnsWithDefaultValue)
 					} else if !field.IsPrimaryKey || !field.IsBlank {
 						columns = append(columns, scope.Quote(field.DBName))
 						placeholders = append(placeholders, scope.AddToVars(field.Field.Interface()))
@@ -85,7 +85,7 @@ func createCallback(scope *Scope) {
 			extraOption     string
 		)
 
-		if str, ok := scope.Get("gorm:insert_option"); ok {
+		if str, ok := scope.Get("orm:insert_option"); ok {
 			extraOption = fmt.Sprint(str)
 		}
 
@@ -141,7 +141,7 @@ func createCallback(scope *Scope) {
 
 // forceReloadAfterCreateCallback will reload columns that having default value, and set it back to current object
 func forceReloadAfterCreateCallback(scope *Scope) {
-	if blankColumnsWithDefaultValue, ok := scope.InstanceGet("gorm:blank_columns_with_default_value"); ok {
+	if blankColumnsWithDefaultValue, ok := scope.InstanceGet("orm:blank_columns_with_default_value"); ok {
 		db := scope.DB().New().Table(scope.TableName()).Select(blankColumnsWithDefaultValue.([]string))
 		for _, field := range scope.Fields() {
 			if field.IsPrimaryKey && !field.IsBlank {

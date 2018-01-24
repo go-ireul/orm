@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import (
 	"database/sql"
@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
 func getPreloadUser(name string) *User {
@@ -100,7 +100,7 @@ func TestAutoPreload(t *testing.T) {
 	user1 := getPreloadUser("auto_user1")
 	DB.Save(user1)
 
-	preloadDB := DB.Set("gorm:auto_preload", true).Where("role = ?", "Preload")
+	preloadDB := DB.Set("orm:auto_preload", true).Where("role = ?", "Preload")
 	var user User
 	preloadDB.Find(&user)
 	checkUserHasPreloadData(user, t)
@@ -162,7 +162,7 @@ func TestNestedPreload1(t *testing.T) {
 		t.Errorf("got %s; want %s", toJSONString(got), toJSONString(want))
 	}
 
-	if err := DB.Preload("Level2").Preload("Level2.Level1").Find(&got, "name = ?", "not_found").Error; err != gorm.ErrRecordNotFound {
+	if err := DB.Preload("Level2").Preload("Level2.Level1").Find(&got, "name = ?", "not_found").Error; err != orm.ErrRecordNotFound {
 		t.Error(err)
 	}
 }
@@ -727,7 +727,7 @@ type LevelB3 struct {
 	Value     string
 	LevelB1ID sql.NullInt64
 	LevelB1   *LevelB1
-	LevelB2s  []*LevelB2 `gorm:"many2many:levelb1_levelb3_levelb2s"`
+	LevelB2s  []*LevelB2 `orm:"many2many:levelb1_levelb3_levelb2s"`
 }
 
 func TestNestedPreload11(t *testing.T) {
@@ -825,21 +825,21 @@ func TestNestedPreload12(t *testing.T) {
 }
 
 func TestManyToManyPreloadWithMultiPrimaryKeys(t *testing.T) {
-	if dialect := os.Getenv("GORM_DIALECT"); dialect == "" || dialect == "sqlite" || dialect == "mssql" {
+	if dialect := os.Getenv("ORM_DIALECT"); dialect == "" || dialect == "sqlite" || dialect == "mssql" {
 		return
 	}
 
 	type (
 		Level1 struct {
-			ID           uint   `gorm:"primary_key;"`
-			LanguageCode string `gorm:"primary_key"`
+			ID           uint   `orm:"primary_key;"`
+			LanguageCode string `orm:"primary_key"`
 			Value        string
 		}
 		Level2 struct {
-			ID           uint   `gorm:"primary_key;"`
-			LanguageCode string `gorm:"primary_key"`
+			ID           uint   `orm:"primary_key;"`
+			LanguageCode string `orm:"primary_key"`
 			Value        string
-			Level1s      []Level1 `gorm:"many2many:levels;"`
+			Level1s      []Level1 `orm:"many2many:levels;"`
 		}
 	)
 
@@ -924,7 +924,7 @@ func TestManyToManyPreloadForNestedPointer(t *testing.T) {
 		Level2 struct {
 			ID      uint
 			Value   string
-			Level1s []*Level1 `gorm:"many2many:levels;"`
+			Level1s []*Level1 `orm:"many2many:levels;"`
 		}
 		Level3 struct {
 			ID       uint
@@ -1027,12 +1027,12 @@ func TestNestedManyToManyPreload(t *testing.T) {
 		Level2 struct {
 			ID      uint
 			Value   string
-			Level1s []*Level1 `gorm:"many2many:level1_level2;"`
+			Level1s []*Level1 `orm:"many2many:level1_level2;"`
 		}
 		Level3 struct {
 			ID      uint
 			Value   string
-			Level2s []Level2 `gorm:"many2many:level2_level3;"`
+			Level2s []Level2 `orm:"many2many:level2_level3;"`
 		}
 	)
 
@@ -1078,7 +1078,7 @@ func TestNestedManyToManyPreload(t *testing.T) {
 		t.Errorf("got %s; want %s", toJSONString(got), toJSONString(want))
 	}
 
-	if err := DB.Preload("Level2s.Level1s").Find(&got, "value = ?", "not_found").Error; err != gorm.ErrRecordNotFound {
+	if err := DB.Preload("Level2s.Level1s").Find(&got, "value = ?", "not_found").Error; err != orm.ErrRecordNotFound {
 		t.Error(err)
 	}
 }
@@ -1092,7 +1092,7 @@ func TestNestedManyToManyPreload2(t *testing.T) {
 		Level2 struct {
 			ID      uint
 			Value   string
-			Level1s []*Level1 `gorm:"many2many:level1_level2;"`
+			Level1s []*Level1 `orm:"many2many:level1_level2;"`
 		}
 		Level3 struct {
 			ID       uint
@@ -1135,7 +1135,7 @@ func TestNestedManyToManyPreload2(t *testing.T) {
 		t.Errorf("got %s; want %s", toJSONString(got), toJSONString(want))
 	}
 
-	if err := DB.Preload("Level2.Level1s").Find(&got, "value = ?", "not_found").Error; err != gorm.ErrRecordNotFound {
+	if err := DB.Preload("Level2.Level1s").Find(&got, "value = ?", "not_found").Error; err != orm.ErrRecordNotFound {
 		t.Error(err)
 	}
 }
@@ -1149,7 +1149,7 @@ func TestNestedManyToManyPreload3(t *testing.T) {
 		Level2 struct {
 			ID      uint
 			Value   string
-			Level1s []*Level1 `gorm:"many2many:level1_level2;"`
+			Level1s []*Level1 `orm:"many2many:level1_level2;"`
 		}
 		Level3 struct {
 			ID       uint
@@ -1204,7 +1204,7 @@ func TestNestedManyToManyPreload3(t *testing.T) {
 	}
 
 	var gots []*Level3
-	if err := DB.Preload("Level2.Level1s", func(db *gorm.DB) *gorm.DB {
+	if err := DB.Preload("Level2.Level1s", func(db *orm.DB) *orm.DB {
 		return db.Order("level1.id ASC")
 	}).Find(&gots).Error; err != nil {
 		t.Error(err)
@@ -1224,7 +1224,7 @@ func TestNestedManyToManyPreload3ForStruct(t *testing.T) {
 		Level2 struct {
 			ID      uint
 			Value   string
-			Level1s []Level1 `gorm:"many2many:level1_level2;"`
+			Level1s []Level1 `orm:"many2many:level1_level2;"`
 		}
 		Level3 struct {
 			ID       uint
@@ -1279,7 +1279,7 @@ func TestNestedManyToManyPreload3ForStruct(t *testing.T) {
 	}
 
 	var gots []*Level3
-	if err := DB.Preload("Level2.Level1s", func(db *gorm.DB) *gorm.DB {
+	if err := DB.Preload("Level2.Level1s", func(db *orm.DB) *orm.DB {
 		return db.Order("level1.id ASC")
 	}).Find(&gots).Error; err != nil {
 		t.Error(err)
@@ -1305,12 +1305,12 @@ func TestNestedManyToManyPreload4(t *testing.T) {
 		Level2 struct {
 			ID      uint
 			Value   string
-			Level3s []*Level3 `gorm:"many2many:level2_level3;"`
+			Level3s []*Level3 `orm:"many2many:level2_level3;"`
 		}
 		Level1 struct {
 			ID      uint
 			Value   string
-			Level2s []*Level2 `gorm:"many2many:level1_level2;"`
+			Level2s []*Level2 `orm:"many2many:level1_level2;"`
 		}
 	)
 
@@ -1357,7 +1357,7 @@ func TestManyToManyPreloadForPointer(t *testing.T) {
 		Level2 struct {
 			ID      uint
 			Value   string
-			Level1s []*Level1 `gorm:"many2many:levels;"`
+			Level1s []*Level1 `orm:"many2many:levels;"`
 		}
 	)
 
@@ -1511,7 +1511,7 @@ func TestNilPointerSlice2(t *testing.T) {
 		}
 		Level2 struct {
 			ID      uint
-			Level3s []*Level3 `gorm:"many2many:level2_level3s"`
+			Level3s []*Level3 `orm:"many2many:level2_level3s"`
 		}
 		Level1 struct {
 			ID       uint

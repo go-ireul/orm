@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 import (
 	"database/sql"
@@ -32,15 +32,15 @@ type DB struct {
 
 // Open initialize a new db connection, need to import driver first, e.g:
 //
-//     import _ "github.com/go-sql-driver/mysql"
+//     import _ "ireul.com/mysql"
 //     func main() {
-//       db, err := gorm.Open("mysql", "user:password@/dbname?charset=utf8&parseTime=True&loc=Local")
+//       db, err := orm.Open("mysql", "user:password@/dbname?charset=utf8&parseTime=True&loc=Local")
 //     }
-// GORM has wrapped some drivers, for easier to remember driver's import path, so you could import the mysql driver with
-//    import _ "github.com/jinzhu/gorm/dialects/mysql"
-//    // import _ "github.com/jinzhu/gorm/dialects/postgres"
-//    // import _ "github.com/jinzhu/gorm/dialects/sqlite"
-//    // import _ "github.com/jinzhu/gorm/dialects/mssql"
+// ORM has wrapped some drivers, for easier to remember driver's import path, so you could import the mysql driver with
+//    import _ "ireul.com/orm/dialects/mysql"
+//    // import _ "ireul.com/orm/dialects/postgres"
+//    // import _ "ireul.com/orm/dialects/sqlite"
+//    // import _ "ireul.com/orm/dialects/mssql"
 func Open(dialect string, args ...interface{}) (db *DB, err error) {
 	if len(args) == 0 {
 		err = errors.New("invalid database source")
@@ -110,7 +110,7 @@ func (s *DB) DB() *sql.DB {
 	return db
 }
 
-// CommonDB return the underlying `*sql.DB` or `*sql.Tx` instance, mainly intended to allow coexistence with legacy non-GORM code.
+// CommonDB return the underlying `*sql.DB` or `*sql.Tx` instance, mainly intended to allow coexistence with legacy non-ORM code.
 func (s *DB) CommonDB() SQLCommon {
 	return s.db
 }
@@ -122,7 +122,7 @@ func (s *DB) Dialect() Dialect {
 
 // Callback return `Callbacks` container, you could add/change/delete callbacks with it
 //     db.Callback().Create().Register("update_created_at", updateCreated)
-// Refer https://jinzhu.github.io/gorm/development.html#callbacks
+// Refer https://jinzhu.github.io/orm/development.html#callbacks
 func (s *DB) Callback() *Callback {
 	s.parent.callbacks = s.parent.callbacks.clone()
 	return s.parent.callbacks
@@ -177,7 +177,7 @@ func (s *DB) QueryExpr() *expr {
 	return Expr(scope.SQL, scope.SQLVars...)
 }
 
-// Where return a new relation, filter records with given conditions, accepts `map`, `struct` or `string` as conditions, refer http://jinzhu.github.io/gorm/crud.html#query
+// Where return a new relation, filter records with given conditions, accepts `map`, `struct` or `string` as conditions, refer http://jinzhu.github.io/orm/crud.html#query
 func (s *DB) Where(query interface{}, args ...interface{}) *DB {
 	return s.clone().search.Where(query, args...).db
 }
@@ -205,7 +205,7 @@ func (s *DB) Offset(offset interface{}) *DB {
 // Order specify order when retrieve records from database, set reorder to `true` to overwrite defined conditions
 //     db.Order("name DESC")
 //     db.Order("name DESC", true) // reorder
-//     db.Order(gorm.Expr("name = ? DESC", "first")) // sql expression
+//     db.Order(orm.Expr("name = ? DESC", "first")) // sql expression
 func (s *DB) Order(value interface{}, reorder ...bool) *DB {
 	return s.clone().search.Order(value, reorder...).db
 }
@@ -238,18 +238,18 @@ func (s *DB) Joins(query string, args ...interface{}) *DB {
 }
 
 // Scopes pass current database connection to arguments `func(*DB) *DB`, which could be used to add conditions dynamically
-//     func AmountGreaterThan1000(db *gorm.DB) *gorm.DB {
+//     func AmountGreaterThan1000(db *orm.DB) *orm.DB {
 //         return db.Where("amount > ?", 1000)
 //     }
 //
-//     func OrderStatus(status []string) func (db *gorm.DB) *gorm.DB {
-//         return func (db *gorm.DB) *gorm.DB {
+//     func OrderStatus(status []string) func (db *orm.DB) *orm.DB {
+//         return func (db *orm.DB) *orm.DB {
 //             return db.Scopes(AmountGreaterThan1000).Where("status in (?)", status)
 //         }
 //     }
 //
 //     db.Scopes(AmountGreaterThan1000, OrderStatus([]string{"paid", "shipped"})).Find(&orders)
-// Refer https://jinzhu.github.io/gorm/crud.html#scopes
+// Refer https://jinzhu.github.io/orm/crud.html#scopes
 func (s *DB) Scopes(funcs ...func(*DB) *DB) *DB {
 	for _, f := range funcs {
 		s = f(s)
@@ -257,17 +257,17 @@ func (s *DB) Scopes(funcs ...func(*DB) *DB) *DB {
 	return s
 }
 
-// Unscoped return all record including deleted record, refer Soft Delete https://jinzhu.github.io/gorm/crud.html#soft-delete
+// Unscoped return all record including deleted record, refer Soft Delete https://jinzhu.github.io/orm/crud.html#soft-delete
 func (s *DB) Unscoped() *DB {
 	return s.clone().search.unscoped().db
 }
 
-// Attrs initialize struct with argument if record not found with `FirstOrInit` https://jinzhu.github.io/gorm/crud.html#firstorinit or `FirstOrCreate` https://jinzhu.github.io/gorm/crud.html#firstorcreate
+// Attrs initialize struct with argument if record not found with `FirstOrInit` https://jinzhu.github.io/orm/crud.html#firstorinit or `FirstOrCreate` https://jinzhu.github.io/orm/crud.html#firstorcreate
 func (s *DB) Attrs(attrs ...interface{}) *DB {
 	return s.clone().search.Attrs(attrs...).db
 }
 
-// Assign assign result with argument regardless it is found or not with `FirstOrInit` https://jinzhu.github.io/gorm/crud.html#firstorinit or `FirstOrCreate` https://jinzhu.github.io/gorm/crud.html#firstorcreate
+// Assign assign result with argument regardless it is found or not with `FirstOrInit` https://jinzhu.github.io/orm/crud.html#firstorinit or `FirstOrCreate` https://jinzhu.github.io/orm/crud.html#firstorcreate
 func (s *DB) Assign(attrs ...interface{}) *DB {
 	return s.clone().search.Assign(attrs...).db
 }
@@ -276,7 +276,7 @@ func (s *DB) Assign(attrs ...interface{}) *DB {
 func (s *DB) First(out interface{}, where ...interface{}) *DB {
 	newScope := s.clone().NewScope(out)
 	newScope.Search.Limit(1)
-	return newScope.Set("gorm:order_by_primary_key", "ASC").
+	return newScope.Set("orm:order_by_primary_key", "ASC").
 		inlineCondition(where...).callCallbacks(s.parent.callbacks.queries).db
 }
 
@@ -284,7 +284,7 @@ func (s *DB) First(out interface{}, where ...interface{}) *DB {
 func (s *DB) Last(out interface{}, where ...interface{}) *DB {
 	newScope := s.clone().NewScope(out)
 	newScope.Search.Limit(1)
-	return newScope.Set("gorm:order_by_primary_key", "DESC").
+	return newScope.Set("orm:order_by_primary_key", "DESC").
 		inlineCondition(where...).callCallbacks(s.parent.callbacks.queries).db
 }
 
@@ -295,7 +295,7 @@ func (s *DB) Find(out interface{}, where ...interface{}) *DB {
 
 // Scan scan value to a struct
 func (s *DB) Scan(dest interface{}) *DB {
-	return s.clone().NewScope(s.Value).Set("gorm:query_destination", dest).callCallbacks(s.parent.callbacks.queries).db
+	return s.clone().NewScope(s.Value).Set("orm:query_destination", dest).callCallbacks(s.parent.callbacks.queries).db
 }
 
 // Row return `*sql.Row` with given conditions
@@ -341,7 +341,7 @@ func (s *DB) Related(value interface{}, foreignKeys ...string) *DB {
 }
 
 // FirstOrInit find first matched record or initialize a new one with given conditions (only works with struct, map conditions)
-// https://jinzhu.github.io/gorm/crud.html#firstorinit
+// https://jinzhu.github.io/orm/crud.html#firstorinit
 func (s *DB) FirstOrInit(out interface{}, where ...interface{}) *DB {
 	c := s.clone()
 	if result := c.First(out, where...); result.Error != nil {
@@ -356,7 +356,7 @@ func (s *DB) FirstOrInit(out interface{}, where ...interface{}) *DB {
 }
 
 // FirstOrCreate find first matched record or create a new one with given conditions (only works with struct, map conditions)
-// https://jinzhu.github.io/gorm/crud.html#firstorcreate
+// https://jinzhu.github.io/orm/crud.html#firstorcreate
 func (s *DB) FirstOrCreate(out interface{}, where ...interface{}) *DB {
 	c := s.clone()
 	if result := s.First(out, where...); result.Error != nil {
@@ -365,35 +365,35 @@ func (s *DB) FirstOrCreate(out interface{}, where ...interface{}) *DB {
 		}
 		return c.NewScope(out).inlineCondition(where...).initialize().callCallbacks(c.parent.callbacks.creates).db
 	} else if len(c.search.assignAttrs) > 0 {
-		return c.NewScope(out).InstanceSet("gorm:update_interface", c.search.assignAttrs).callCallbacks(c.parent.callbacks.updates).db
+		return c.NewScope(out).InstanceSet("orm:update_interface", c.search.assignAttrs).callCallbacks(c.parent.callbacks.updates).db
 	}
 	return c
 }
 
-// Update update attributes with callbacks, refer: https://jinzhu.github.io/gorm/crud.html#update
+// Update update attributes with callbacks, refer: https://jinzhu.github.io/orm/crud.html#update
 func (s *DB) Update(attrs ...interface{}) *DB {
 	return s.Updates(toSearchableMap(attrs...), true)
 }
 
-// Updates update attributes with callbacks, refer: https://jinzhu.github.io/gorm/crud.html#update
+// Updates update attributes with callbacks, refer: https://jinzhu.github.io/orm/crud.html#update
 func (s *DB) Updates(values interface{}, ignoreProtectedAttrs ...bool) *DB {
 	return s.clone().NewScope(s.Value).
-		Set("gorm:ignore_protected_attrs", len(ignoreProtectedAttrs) > 0).
-		InstanceSet("gorm:update_interface", values).
+		Set("orm:ignore_protected_attrs", len(ignoreProtectedAttrs) > 0).
+		InstanceSet("orm:update_interface", values).
 		callCallbacks(s.parent.callbacks.updates).db
 }
 
-// UpdateColumn update attributes without callbacks, refer: https://jinzhu.github.io/gorm/crud.html#update
+// UpdateColumn update attributes without callbacks, refer: https://jinzhu.github.io/orm/crud.html#update
 func (s *DB) UpdateColumn(attrs ...interface{}) *DB {
 	return s.UpdateColumns(toSearchableMap(attrs...))
 }
 
-// UpdateColumns update attributes without callbacks, refer: https://jinzhu.github.io/gorm/crud.html#update
+// UpdateColumns update attributes without callbacks, refer: https://jinzhu.github.io/orm/crud.html#update
 func (s *DB) UpdateColumns(values interface{}) *DB {
 	return s.clone().NewScope(s.Value).
-		Set("gorm:update_column", true).
-		Set("gorm:save_associations", false).
-		InstanceSet("gorm:update_interface", values).
+		Set("orm:update_column", true).
+		Set("orm:save_associations", false).
+		InstanceSet("orm:update_interface", values).
 		callCallbacks(s.parent.callbacks.updates).db
 }
 
@@ -611,10 +611,10 @@ func (s *DB) AddForeignKey(field string, dest string, onDelete string, onUpdate 
 	return scope.db
 }
 
-// Association start `Association Mode` to handler relations things easir in that mode, refer: https://jinzhu.github.io/gorm/associations.html#association-mode
+// Association start `Association Mode` to handler relations things easir in that mode, refer: https://jinzhu.github.io/orm/associations.html#association-mode
 func (s *DB) Association(column string) *Association {
 	var err error
-	var scope = s.Set("gorm:association:source", s.Value).NewScope(s.Value)
+	var scope = s.Set("orm:association:source", s.Value).NewScope(s.Value)
 
 	if primaryField := scope.PrimaryField(); primaryField.IsBlank {
 		err = errors.New("primary key can't be nil")

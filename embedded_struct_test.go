@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import "testing"
 
@@ -16,13 +16,13 @@ type Author struct {
 
 type HNPost struct {
 	BasePost
-	Author  `gorm:"embedded_prefix:user_"` // Embedded struct
+	Author  `orm:"embedded_prefix:user_"` // Embedded struct
 	Upvotes int32
 }
 
 type EngadgetPost struct {
-	BasePost BasePost `gorm:"embedded"`
-	Author   Author   `gorm:"embedded;embedded_prefix:author_"` // Embedded struct
+	BasePost BasePost `orm:"embedded"`
+	Author   Author   `orm:"embedded;embedded_prefix:author_"` // Embedded struct
 	ImageUrl string
 }
 

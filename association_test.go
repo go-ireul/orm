@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
 func TestBelongsTo(t *testing.T) {
@@ -182,13 +182,13 @@ func TestBelongsTo(t *testing.T) {
 
 func TestBelongsToOverrideForeignKey1(t *testing.T) {
 	type Profile struct {
-		gorm.Model
+		orm.Model
 		Name string
 	}
 
 	type User struct {
-		gorm.Model
-		Profile      Profile `gorm:"ForeignKey:ProfileRefer"`
+		orm.Model
+		Profile      Profile `orm:"ForeignKey:ProfileRefer"`
 		ProfileRefer int
 	}
 
@@ -203,14 +203,14 @@ func TestBelongsToOverrideForeignKey1(t *testing.T) {
 
 func TestBelongsToOverrideForeignKey2(t *testing.T) {
 	type Profile struct {
-		gorm.Model
+		orm.Model
 		Refer string
 		Name  string
 	}
 
 	type User struct {
-		gorm.Model
-		Profile   Profile `gorm:"ForeignKey:ProfileID;AssociationForeignKey:Refer"`
+		orm.Model
+		Profile   Profile `orm:"ForeignKey:ProfileID;AssociationForeignKey:Refer"`
 		ProfileID int
 	}
 
@@ -371,14 +371,14 @@ func TestHasOne(t *testing.T) {
 
 func TestHasOneOverrideForeignKey1(t *testing.T) {
 	type Profile struct {
-		gorm.Model
+		orm.Model
 		Name      string
 		UserRefer uint
 	}
 
 	type User struct {
-		gorm.Model
-		Profile Profile `gorm:"ForeignKey:UserRefer"`
+		orm.Model
+		Profile Profile `orm:"ForeignKey:UserRefer"`
 	}
 
 	if relation, ok := DB.NewScope(&User{}).FieldByName("Profile"); ok {
@@ -392,15 +392,15 @@ func TestHasOneOverrideForeignKey1(t *testing.T) {
 
 func TestHasOneOverrideForeignKey2(t *testing.T) {
 	type Profile struct {
-		gorm.Model
+		orm.Model
 		Name   string
 		UserID uint
 	}
 
 	type User struct {
-		gorm.Model
+		orm.Model
 		Refer   string
-		Profile Profile `gorm:"ForeignKey:UserID;AssociationForeignKey:Refer"`
+		Profile Profile `orm:"ForeignKey:UserID;AssociationForeignKey:Refer"`
 	}
 
 	if relation, ok := DB.NewScope(&User{}).FieldByName("Profile"); ok {
@@ -553,14 +553,14 @@ func TestHasMany(t *testing.T) {
 
 func TestHasManyOverrideForeignKey1(t *testing.T) {
 	type Profile struct {
-		gorm.Model
+		orm.Model
 		Name      string
 		UserRefer uint
 	}
 
 	type User struct {
-		gorm.Model
-		Profile []Profile `gorm:"ForeignKey:UserRefer"`
+		orm.Model
+		Profile []Profile `orm:"ForeignKey:UserRefer"`
 	}
 
 	if relation, ok := DB.NewScope(&User{}).FieldByName("Profile"); ok {
@@ -574,15 +574,15 @@ func TestHasManyOverrideForeignKey1(t *testing.T) {
 
 func TestHasManyOverrideForeignKey2(t *testing.T) {
 	type Profile struct {
-		gorm.Model
+		orm.Model
 		Name   string
 		UserID uint
 	}
 
 	type User struct {
-		gorm.Model
+		orm.Model
 		Refer   string
-		Profile []Profile `gorm:"ForeignKey:UserID;AssociationForeignKey:Refer"`
+		Profile []Profile `orm:"ForeignKey:UserID;AssociationForeignKey:Refer"`
 	}
 
 	if relation, ok := DB.NewScope(&User{}).FieldByName("Profile"); ok {
@@ -843,7 +843,7 @@ func TestForeignKey(t *testing.T) {
 }
 
 func testForeignKey(t *testing.T, source interface{}, sourceFieldName string, target interface{}, targetFieldName string) {
-	if dialect := os.Getenv("GORM_DIALECT"); dialect == "" || dialect == "sqlite" {
+	if dialect := os.Getenv("ORM_DIALECT"); dialect == "" || dialect == "sqlite" {
 		// sqlite does not support ADD CONSTRAINT in ALTER TABLE
 		return
 	}
@@ -887,15 +887,15 @@ func TestHasManyChildrenWithOneStruct(t *testing.T) {
 
 func TestSkipSaveAssociation(t *testing.T) {
 	type Company struct {
-		gorm.Model
+		orm.Model
 		Name string
 	}
 
 	type User struct {
-		gorm.Model
+		orm.Model
 		Name      string
 		CompanyID uint
-		Company   Company `gorm:"save_associations:false"`
+		Company   Company `orm:"save_associations:false"`
 	}
 	DB.AutoMigrate(&Company{}, &User{})
 

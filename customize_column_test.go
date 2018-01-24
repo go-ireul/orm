@@ -1,23 +1,23 @@
-package gorm_test
+package orm_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
 type CustomizeColumn struct {
-	ID   int64      `gorm:"column:mapped_id; primary_key:yes"`
-	Name string     `gorm:"column:mapped_name"`
-	Date *time.Time `gorm:"column:mapped_time"`
+	ID   int64      `orm:"column:mapped_id; primary_key:yes"`
+	Name string     `orm:"column:mapped_name"`
+	Date *time.Time `orm:"column:mapped_time"`
 }
 
 // Make sure an ignored field does not interfere with another field's custom
 // column name that matches the ignored field.
 type CustomColumnAndIgnoredFieldClash struct {
 	Body    string `sql:"-"`
-	RawBody string `gorm:"column:body"`
+	RawBody string `orm:"column:body"`
 }
 
 func TestCustomizeColumn(t *testing.T) {
@@ -68,12 +68,12 @@ func TestCustomColumnAndIgnoredFieldClash(t *testing.T) {
 }
 
 type CustomizePerson struct {
-	IdPerson string             `gorm:"column:idPerson;primary_key:true"`
-	Accounts []CustomizeAccount `gorm:"many2many:PersonAccount;associationforeignkey:idAccount;foreignkey:idPerson"`
+	IdPerson string             `orm:"column:idPerson;primary_key:true"`
+	Accounts []CustomizeAccount `orm:"many2many:PersonAccount;associationforeignkey:idAccount;foreignkey:idPerson"`
 }
 
 type CustomizeAccount struct {
-	IdAccount string `gorm:"column:idAccount;primary_key:true"`
+	IdAccount string `orm:"column:idAccount;primary_key:true"`
 	Name      string
 }
 
@@ -107,14 +107,14 @@ func TestManyToManyWithCustomizedColumn(t *testing.T) {
 }
 
 type CustomizeUser struct {
-	gorm.Model
+	orm.Model
 	Email string `sql:"column:email_address"`
 }
 
 type CustomizeInvitation struct {
-	gorm.Model
+	orm.Model
 	Address string         `sql:"column:invitation"`
-	Person  *CustomizeUser `gorm:"foreignkey:Email;associationforeignkey:invitation"`
+	Person  *CustomizeUser `orm:"foreignkey:Email;associationforeignkey:invitation"`
 }
 
 func TestOneToOneWithCustomizedColumn(t *testing.T) {
@@ -142,29 +142,29 @@ func TestOneToOneWithCustomizedColumn(t *testing.T) {
 }
 
 type PromotionDiscount struct {
-	gorm.Model
+	orm.Model
 	Name     string
-	Coupons  []*PromotionCoupon `gorm:"ForeignKey:discount_id"`
-	Rule     *PromotionRule     `gorm:"ForeignKey:discount_id"`
-	Benefits []PromotionBenefit `gorm:"ForeignKey:promotion_id"`
+	Coupons  []*PromotionCoupon `orm:"ForeignKey:discount_id"`
+	Rule     *PromotionRule     `orm:"ForeignKey:discount_id"`
+	Benefits []PromotionBenefit `orm:"ForeignKey:promotion_id"`
 }
 
 type PromotionBenefit struct {
-	gorm.Model
+	orm.Model
 	Name        string
 	PromotionID uint
-	Discount    PromotionDiscount `gorm:"ForeignKey:promotion_id"`
+	Discount    PromotionDiscount `orm:"ForeignKey:promotion_id"`
 }
 
 type PromotionCoupon struct {
-	gorm.Model
+	orm.Model
 	Code       string
 	DiscountID uint
 	Discount   PromotionDiscount
 }
 
 type PromotionRule struct {
-	gorm.Model
+	orm.Model
 	Name       string
 	Begin      *time.Time
 	End        *time.Time

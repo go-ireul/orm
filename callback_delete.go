@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 import (
 	"errors"
@@ -7,11 +7,11 @@ import (
 
 // Define callbacks for deleting
 func init() {
-	DefaultCallback.Delete().Register("gorm:begin_transaction", beginTransactionCallback)
-	DefaultCallback.Delete().Register("gorm:before_delete", beforeDeleteCallback)
-	DefaultCallback.Delete().Register("gorm:delete", deleteCallback)
-	DefaultCallback.Delete().Register("gorm:after_delete", afterDeleteCallback)
-	DefaultCallback.Delete().Register("gorm:commit_or_rollback_transaction", commitOrRollbackTransactionCallback)
+	DefaultCallback.Delete().Register("orm:begin_transaction", beginTransactionCallback)
+	DefaultCallback.Delete().Register("orm:before_delete", beforeDeleteCallback)
+	DefaultCallback.Delete().Register("orm:delete", deleteCallback)
+	DefaultCallback.Delete().Register("orm:after_delete", afterDeleteCallback)
+	DefaultCallback.Delete().Register("orm:commit_or_rollback_transaction", commitOrRollbackTransactionCallback)
 }
 
 // beforeDeleteCallback will invoke `BeforeDelete` method before deleting
@@ -29,7 +29,7 @@ func beforeDeleteCallback(scope *Scope) {
 func deleteCallback(scope *Scope) {
 	if !scope.HasError() {
 		var extraOption string
-		if str, ok := scope.Get("gorm:delete_option"); ok {
+		if str, ok := scope.Get("orm:delete_option"); ok {
 			extraOption = fmt.Sprint(str)
 		}
 

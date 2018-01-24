@@ -1,10 +1,10 @@
-package gorm
+package orm
 
 import "database/sql"
 
 // Define callbacks for row query
 func init() {
-	DefaultCallback.RowQuery().Register("gorm:row_query", rowQueryCallback)
+	DefaultCallback.RowQuery().Register("orm:row_query", rowQueryCallback)
 }
 
 type RowQueryResult struct {

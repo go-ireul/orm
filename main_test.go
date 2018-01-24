@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import (
 	"database/sql"
@@ -11,17 +11,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/erikstmartin/go-testdb"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/jinzhu/now"
+	"ireul.com/now"
+	"ireul.com/orm"
+	_ "ireul.com/orm/dialects/mssql"
+	_ "ireul.com/orm/dialects/mysql"
+	"ireul.com/orm/dialects/postgres"
+	_ "ireul.com/orm/dialects/sqlite"
 )
 
 var (
-	DB                 *gorm.DB
+	DB                 *orm.DB
 	t1, t2, t3, t4, t5 time.Time
 )
 
@@ -35,39 +34,39 @@ func init() {
 	runMigration()
 }
 
-func OpenTestConnection() (db *gorm.DB, err error) {
-	switch os.Getenv("GORM_DIALECT") {
+func OpenTestConnection() (db *orm.DB, err error) {
+	switch os.Getenv("ORM_DIALECT") {
 	case "mysql":
-		// CREATE USER 'gorm'@'localhost' IDENTIFIED BY 'gorm';
-		// CREATE DATABASE gorm;
-		// GRANT ALL ON gorm.* TO 'gorm'@'localhost';
+		// CREATE USER 'orm'@'localhost' IDENTIFIED BY 'orm';
+		// CREATE DATABASE orm;
+		// GRANT ALL ON orm.* TO 'orm'@'localhost';
 		fmt.Println("testing mysql...")
-		dbhost := os.Getenv("GORM_DBADDRESS")
+		dbhost := os.Getenv("ORM_DBADDRESS")
 		if dbhost != "" {
 			dbhost = fmt.Sprintf("tcp(%v)", dbhost)
 		}
-		db, err = gorm.Open("mysql", fmt.Sprintf("gorm:gorm@%v/gorm?charset=utf8&parseTime=True", dbhost))
+		db, err = orm.Open("mysql", fmt.Sprintf("orm:orm@%v/orm?charset=utf8&parseTime=True", dbhost))
 	case "postgres":
 		fmt.Println("testing postgres...")
-		dbhost := os.Getenv("GORM_DBHOST")
+		dbhost := os.Getenv("ORM_DBHOST")
 		if dbhost != "" {
 			dbhost = fmt.Sprintf("host=%v ", dbhost)
 		}
-		db, err = gorm.Open("postgres", fmt.Sprintf("%vuser=gorm password=gorm DB.name=gorm sslmode=disable", dbhost))
+		db, err = orm.Open("postgres", fmt.Sprintf("%vuser=orm password=orm DB.name=orm sslmode=disable", dbhost))
 	case "foundation":
 		fmt.Println("testing foundation...")
-		db, err = gorm.Open("foundation", "dbname=gorm port=15432 sslmode=disable")
+		db, err = orm.Open("foundation", "dbname=orm port=15432 sslmode=disable")
 	case "mssql":
-		// CREATE LOGIN gorm WITH PASSWORD = 'LoremIpsum86';
-		// CREATE DATABASE gorm;
-		// USE gorm;
-		// CREATE USER gorm FROM LOGIN gorm;
-		// sp_changedbowner 'gorm';
+		// CREATE LOGIN orm WITH PASSWORD = 'LoremIpsum86';
+		// CREATE DATABASE orm;
+		// USE orm;
+		// CREATE USER orm FROM LOGIN orm;
+		// sp_changedbowner 'orm';
 		fmt.Println("testing mssql...")
-		db, err = gorm.Open("mssql", "sqlserver://gorm:LoremIpsum86@localhost:1433?database=gorm")
+		db, err = orm.Open("mssql", "sqlserver://orm:LoremIpsum86@localhost:1433?database=orm")
 	default:
 		fmt.Println("testing sqlite3...")
-		db, err = gorm.Open("sqlite3", filepath.Join(os.TempDir(), "gorm.db"))
+		db, err = orm.Open("sqlite3", filepath.Join(os.TempDir(), "orm.db"))
 	}
 
 	// db.SetLogger(Logger{log.New(os.Stdout, "\r\n", 0)})
@@ -83,7 +82,7 @@ func OpenTestConnection() (db *gorm.DB, err error) {
 
 func TestStringPrimaryKey(t *testing.T) {
 	type UUIDStruct struct {
-		ID   string `gorm:"primary_key"`
+		ID   string `orm:"primary_key"`
 		Name string
 	}
 	DB.DropTable(&UUIDStruct{})
@@ -508,7 +507,7 @@ func TestRaw(t *testing.T) {
 	}
 
 	DB.Exec("update users set name=? where name in (?)", "jinzhu", []string{user1.Name, user2.Name, user3.Name})
-	if DB.Where("name in (?)", []string{user1.Name, user2.Name, user3.Name}).First(&User{}).Error != gorm.ErrRecordNotFound {
+	if DB.Where("name in (?)", []string{user1.Name, user2.Name, user3.Name}).First(&User{}).Error != orm.ErrRecordNotFound {
 		t.Error("Raw sql to update records")
 	}
 }
@@ -654,7 +653,7 @@ func TestQueryBuilderSubselectInHaving(t *testing.T) {
 
 func DialectHasTzSupport() bool {
 	// NB: mssql and FoundationDB do not support time zones.
-	if dialect := os.Getenv("GORM_DIALECT"); dialect == "foundation" {
+	if dialect := os.Getenv("ORM_DIALECT"); dialect == "foundation" {
 		return false
 	}
 	return true
@@ -707,12 +706,12 @@ func TestHstore(t *testing.T) {
 		Bulk postgres.Hstore
 	}
 
-	if dialect := os.Getenv("GORM_DIALECT"); dialect != "postgres" {
+	if dialect := os.Getenv("ORM_DIALECT"); dialect != "postgres" {
 		t.Skip()
 	}
 
 	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS hstore").Error; err != nil {
-		fmt.Println("\033[31mHINT: Must be superuser to create hstore extension (ALTER USER gorm WITH SUPERUSER;)\033[0m")
+		fmt.Println("\033[31mHINT: Must be superuser to create hstore extension (ALTER USER orm WITH SUPERUSER;)\033[0m")
 		panic(fmt.Sprintf("No error should happen when create hstore extension, but got %+v", err))
 	}
 
@@ -762,7 +761,7 @@ func TestSetAndGet(t *testing.T) {
 }
 
 func TestCompatibilityMode(t *testing.T) {
-	DB, _ := gorm.Open("testdb", "")
+	DB, _ := orm.Open("testdb", "")
 	testdb.SetQueryFunc(func(query string) (driver.Rows, error) {
 		columns := []string{"id", "name", "age"}
 		result := `
@@ -782,15 +781,15 @@ func TestCompatibilityMode(t *testing.T) {
 
 func TestOpenExistingDB(t *testing.T) {
 	DB.Save(&User{Name: "jnfeinstein"})
-	dialect := os.Getenv("GORM_DIALECT")
+	dialect := os.Getenv("ORM_DIALECT")
 
-	db, err := gorm.Open(dialect, DB.DB())
+	db, err := orm.Open(dialect, DB.DB())
 	if err != nil {
 		t.Errorf("Should have wrapped the existing DB connection")
 	}
 
 	var user User
-	if db.Where("name = ?", "jnfeinstein").First(&user).Error == gorm.ErrRecordNotFound {
+	if db.Where("name = ?", "jnfeinstein").First(&user).Error == orm.ErrRecordNotFound {
 		t.Errorf("Should have found existing record")
 	}
 }
@@ -814,7 +813,7 @@ func TestDdlErrors(t *testing.T) {
 }
 
 func TestOpenWithOneParameter(t *testing.T) {
-	db, err := gorm.Open("dialect")
+	db, err := orm.Open("dialect")
 	if db != nil {
 		t.Error("Open with one parameter returned non nil for db")
 	}
@@ -879,7 +878,7 @@ func BenchmarkGorm(b *testing.B) {
 }
 
 func BenchmarkRawSql(b *testing.B) {
-	DB, _ := sql.Open("postgres", "user=gorm DB.ame=gorm sslmode=disable")
+	DB, _ := sql.Open("postgres", "user=orm DB.ame=orm sslmode=disable")
 	DB.SetMaxIdleConns(10)
 	insertSql := "INSERT INTO emails (user_id,email,user_agent,registered_at,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id"
 	querySql := "SELECT * FROM emails WHERE email = $1 ORDER BY id LIMIT 1"

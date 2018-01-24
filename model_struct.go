@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jinzhu/inflection"
+	"ireul.com/inflection"
 )
 
 // DefaultTableNameHandler default table name handler
@@ -581,7 +581,7 @@ func (scope *Scope) GetStructFields() (fields []*StructField) {
 
 func parseTagSetting(tags reflect.StructTag) map[string]string {
 	setting := map[string]string{}
-	for _, str := range []string{tags.Get("sql"), tags.Get("gorm")} {
+	for _, str := range []string{tags.Get("sql"), tags.Get("orm")} {
 		tags := strings.Split(str, ";")
 		for _, value := range tags {
 			v := strings.Split(value, ":")

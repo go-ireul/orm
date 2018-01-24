@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 import (
 	"database/sql"
@@ -129,7 +129,7 @@ func (scope *Scope) Fields() []*Field {
 	return *scope.fields
 }
 
-// FieldByName find `gorm.Field` with field name or db name
+// FieldByName find `orm.Field` with field name or db name
 func (scope *Scope) FieldByName(name string) (field *Field, ok bool) {
 	var (
 		dbName           = ToDBName(name)
@@ -205,9 +205,9 @@ func (scope *Scope) HasColumn(column string) bool {
 // SetColumn to set the column's value, column could be field or field's name/dbname
 func (scope *Scope) SetColumn(column interface{}, value interface{}) error {
 	var updateAttrs = map[string]interface{}{}
-	if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+	if attrs, ok := scope.InstanceGet("orm:update_attrs"); ok {
 		updateAttrs = attrs.(map[string]interface{})
-		defer scope.InstanceSet("gorm:update_attrs", updateAttrs)
+		defer scope.InstanceSet("orm:update_attrs", updateAttrs)
 	}
 
 	if field, ok := column.(*Field); ok {
@@ -402,7 +402,7 @@ func (scope *Scope) Begin() *Scope {
 	if db, ok := scope.SQLDB().(sqlDb); ok {
 		if tx, err := db.Begin(); err == nil {
 			scope.db.db = interface{}(tx).(SQLCommon)
-			scope.InstanceSet("gorm:started_transaction", true)
+			scope.InstanceSet("orm:started_transaction", true)
 		}
 	}
 	return scope
@@ -410,7 +410,7 @@ func (scope *Scope) Begin() *Scope {
 
 // CommitOrRollback commit current transaction if no error happened, otherwise will rollback it
 func (scope *Scope) CommitOrRollback() *Scope {
-	if _, ok := scope.InstanceGet("gorm:started_transaction"); ok {
+	if _, ok := scope.InstanceGet("orm:started_transaction"); ok {
 		if db, ok := scope.db.db.(sqlTx); ok {
 			if scope.HasError() {
 				db.Rollback()
@@ -424,7 +424,7 @@ func (scope *Scope) CommitOrRollback() *Scope {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Private Methods For *gorm.Scope
+// Private Methods For *orm.Scope
 ////////////////////////////////////////////////////////////////////////////////
 
 func (scope *Scope) callMethod(methodName string, reflectValue reflect.Value) {
@@ -994,7 +994,7 @@ func (scope *Scope) changeableField(field *Field) bool {
 }
 
 func (scope *Scope) shouldSaveAssociations() bool {
-	if saveAssociations, ok := scope.Get("gorm:save_associations"); ok {
+	if saveAssociations, ok := scope.Get("orm:save_associations"); ok {
 		if v, ok := saveAssociations.(bool); ok && !v {
 			return false
 		}
@@ -1007,7 +1007,7 @@ func (scope *Scope) shouldSaveAssociations() bool {
 
 func (scope *Scope) related(value interface{}, foreignKeys ...string) *Scope {
 	toScope := scope.db.NewScope(value)
-	tx := scope.db.Set("gorm:association:source", scope.Value)
+	tx := scope.db.Set("orm:association:source", scope.Value)
 
 	for _, foreignKey := range append(foreignKeys, toScope.typeName()+"Id", scope.typeName()+"Id") {
 		fromField, _ := scope.FieldByName(foreignKey)
@@ -1055,7 +1055,7 @@ func (scope *Scope) related(value interface{}, foreignKeys ...string) *Scope {
 
 // getTableOptions return the table options string or an empty string if the table options does not exist
 func (scope *Scope) getTableOptions() string {
-	tableOptions, ok := scope.Get("gorm:table_options")
+	tableOptions, ok := scope.Get("orm:table_options")
 	if !ok {
 		return ""
 	}

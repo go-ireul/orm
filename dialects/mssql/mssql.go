@@ -8,10 +8,10 @@ import (
 	"time"
 
 	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
-func setIdentityInsert(scope *gorm.Scope) {
+func setIdentityInsert(scope *orm.Scope) {
 	if scope.Dialect().GetName() == "mssql" {
 		for _, field := range scope.PrimaryFields() {
 			if _, ok := field.TagSettings["AUTO_INCREMENT"]; ok && !field.IsBlank {
@@ -22,7 +22,7 @@ func setIdentityInsert(scope *gorm.Scope) {
 	}
 }
 
-func turnOffIdentityInsert(scope *gorm.Scope) {
+func turnOffIdentityInsert(scope *orm.Scope) {
 	if scope.Dialect().GetName() == "mssql" {
 		if _, ok := scope.InstanceGet("mssql:identity_insert_on"); ok {
 			scope.NewDB().Exec(fmt.Sprintf("SET IDENTITY_INSERT %v OFF", scope.TableName()))
@@ -31,21 +31,21 @@ func turnOffIdentityInsert(scope *gorm.Scope) {
 }
 
 func init() {
-	gorm.DefaultCallback.Create().After("gorm:begin_transaction").Register("mssql:set_identity_insert", setIdentityInsert)
-	gorm.DefaultCallback.Create().Before("gorm:commit_or_rollback_transaction").Register("mssql:turn_off_identity_insert", turnOffIdentityInsert)
-	gorm.RegisterDialect("mssql", &mssql{})
+	orm.DefaultCallback.Create().After("orm:begin_transaction").Register("mssql:set_identity_insert", setIdentityInsert)
+	orm.DefaultCallback.Create().Before("orm:commit_or_rollback_transaction").Register("mssql:turn_off_identity_insert", turnOffIdentityInsert)
+	orm.RegisterDialect("mssql", &mssql{})
 }
 
 type mssql struct {
-	db gorm.SQLCommon
-	gorm.DefaultForeignKeyNamer
+	db orm.SQLCommon
+	orm.DefaultForeignKeyNamer
 }
 
 func (mssql) GetName() string {
 	return "mssql"
 }
 
-func (s *mssql) SetDB(db gorm.SQLCommon) {
+func (s *mssql) SetDB(db orm.SQLCommon) {
 	s.db = db
 }
 
@@ -57,8 +57,8 @@ func (mssql) Quote(key string) string {
 	return fmt.Sprintf(`"%s"`, key)
 }
 
-func (s *mssql) DataTypeOf(field *gorm.StructField) string {
-	var dataValue, sqlType, size, additionalType = gorm.ParseFieldStructForDialect(field, s)
+func (s *mssql) DataTypeOf(field *orm.StructField) string {
+	var dataValue, sqlType, size, additionalType = orm.ParseFieldStructForDialect(field, s)
 
 	if sqlType == "" {
 		switch dataValue.Kind() {
@@ -91,7 +91,7 @@ func (s *mssql) DataTypeOf(field *gorm.StructField) string {
 				sqlType = "datetimeoffset"
 			}
 		default:
-			if gorm.IsByteArrayOrSlice(dataValue) {
+			if orm.IsByteArrayOrSlice(dataValue) {
 				if size > 0 && size < 8000 {
 					sqlType = fmt.Sprintf("varbinary(%d)", size)
 				} else {

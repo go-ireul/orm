@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import (
 	"database/sql"
@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
 type User struct {
@@ -29,7 +29,7 @@ type User struct {
 	ShippingAddressId int64         // Embedded struct's foreign key
 	CreditCard        CreditCard
 	Latitude          float64
-	Languages         []Language `gorm:"many2many:user_languages;"`
+	Languages         []Language `orm:"many2many:user_languages;"`
 	CompanyID         *int
 	Company           Company
 	Role              Role
@@ -88,9 +88,9 @@ type Address struct {
 }
 
 type Language struct {
-	gorm.Model
+	orm.Model
 	Name  string
-	Users []User `gorm:"many2many:user_languages;"`
+	Users []User `orm:"many2many:user_languages;"`
 }
 
 type Product struct {
@@ -117,7 +117,7 @@ type Company struct {
 }
 
 type Role struct {
-	Name string `gorm:"size:256"`
+	Name string `orm:"size:256"`
 }
 
 func (role *Role) Scan(value interface{}) error {
@@ -151,7 +151,7 @@ func (i *Num) Scan(src interface{}) error {
 }
 
 type Animal struct {
-	Counter    uint64    `gorm:"primary_key:yes"`
+	Counter    uint64    `orm:"primary_key:yes"`
 	Name       string    `sql:"DEFAULT:'galeone'"`
 	From       string    //test reserved sql keyword as field name
 	Age        time.Time `sql:"DEFAULT:current_timestamp"`
@@ -178,7 +178,7 @@ type Post struct {
 }
 
 type Category struct {
-	gorm.Model
+	orm.Model
 	Name string
 
 	Categories []Category
@@ -186,7 +186,7 @@ type Category struct {
 }
 
 type Comment struct {
-	gorm.Model
+	orm.Model
 	PostId  int64
 	Content string
 	Post    Post
@@ -435,7 +435,7 @@ func TestMultipleIndexes(t *testing.T) {
 }
 
 func TestModifyColumnType(t *testing.T) {
-	dialect := os.Getenv("GORM_DIALECT")
+	dialect := os.Getenv("ORM_DIALECT")
 	if dialect != "postgres" &&
 		dialect != "mysql" &&
 		dialect != "mssql" {
@@ -443,9 +443,9 @@ func TestModifyColumnType(t *testing.T) {
 	}
 
 	type ModifyColumnType struct {
-		gorm.Model
-		Name1 string `gorm:"length:100"`
-		Name2 string `gorm:"length:200"`
+		orm.Model
+		Name1 string `orm:"length:100"`
+		Name2 string `orm:"length:200"`
 	}
 	DB.DropTable(&ModifyColumnType{})
 	DB.CreateTable(&ModifyColumnType{})

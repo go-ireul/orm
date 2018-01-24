@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import (
 	"reflect"
@@ -9,20 +9,20 @@ import (
 type Cat struct {
 	Id   int
 	Name string
-	Toy  Toy `gorm:"polymorphic:Owner;"`
+	Toy  Toy `orm:"polymorphic:Owner;"`
 }
 
 type Dog struct {
 	Id   int
 	Name string
-	Toys []Toy `gorm:"polymorphic:Owner;"`
+	Toys []Toy `orm:"polymorphic:Owner;"`
 }
 
 type Hamster struct {
 	Id           int
 	Name         string
-	PreferredToy Toy `gorm:"polymorphic:Owner;polymorphic_value:hamster_preferred"`
-	OtherToy     Toy `gorm:"polymorphic:Owner;polymorphic_value:hamster_other"`
+	PreferredToy Toy `orm:"polymorphic:Owner;polymorphic_value:hamster_preferred"`
+	OtherToy     Toy `orm:"polymorphic:Owner;polymorphic_value:hamster_other"`
 }
 
 type Toy struct {

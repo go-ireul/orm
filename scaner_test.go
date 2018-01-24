@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import (
 	"database/sql/driver"
@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
 func TestScannableSlices(t *testing.T) {
@@ -123,14 +123,14 @@ type ScannerDataTypeTestStruct2 struct {
 }
 
 func TestScannerDataType(t *testing.T) {
-	scope := gorm.Scope{Value: &ScannerDataTypeTestStruct{}}
+	scope := orm.Scope{Value: &ScannerDataTypeTestStruct{}}
 	if field, ok := scope.FieldByName("ScannerDataType"); ok {
 		if DB.Dialect().DataTypeOf(field.StructField) != "json" {
 			t.Errorf("data type for scanner is wrong")
 		}
 	}
 
-	scope = gorm.Scope{Value: &ScannerDataTypeTestStruct2{}}
+	scope = orm.Scope{Value: &ScannerDataTypeTestStruct2{}}
 	if field, ok := scope.FieldByName("ScannerDataType"); ok {
 		if DB.Dialect().DataTypeOf(field.StructField) != "varchar(24)" {
 			t.Errorf("data type for scanner is wrong")

@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 // preloadCallback used to preload associations
 func preloadCallback(scope *Scope) {
 
-	if _, ok := scope.Get("gorm:auto_preload"); ok {
+	if _, ok := scope.Get("orm:auto_preload"); ok {
 		autoPreload(scope)
 	}
 

@@ -1,4 +1,4 @@
-package gorm
+package orm
 
 import (
 	"database/sql"
@@ -83,10 +83,10 @@ var ParseFieldStructForDialect = func(field *StructField, dialect Dialect) (fiel
 	// Get redirected field value
 	fieldValue = reflect.Indirect(reflect.New(reflectType))
 
-	if gormDataType, ok := fieldValue.Interface().(interface {
+	if ormDataType, ok := fieldValue.Interface().(interface {
 		GormDataType(Dialect) string
 	}); ok {
-		dataType = gormDataType.GormDataType(dialect)
+		dataType = ormDataType.GormDataType(dialect)
 	}
 
 	// Get scanner's real value

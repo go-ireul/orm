@@ -1,9 +1,9 @@
-package gorm_test
+package orm_test
 
 import (
 	"errors"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 
 	"reflect"
 	"testing"
@@ -37,7 +37,7 @@ func (s *Product) AfterFind() {
 	s.AfterFindCallTimes = s.AfterFindCallTimes + 1
 }
 
-func (s *Product) AfterCreate(tx *gorm.DB) {
+func (s *Product) AfterCreate(tx *orm.DB) {
 	tx.Model(s).UpdateColumn(Product{AfterCreateCallTimes: s.AfterCreateCallTimes + 1})
 }
 

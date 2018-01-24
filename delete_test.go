@@ -1,4 +1,4 @@
-package gorm_test
+package orm_test
 
 import (
 	"testing"

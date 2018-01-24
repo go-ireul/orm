@@ -1,8 +1,8 @@
-package gorm
+package orm
 
 import "log"
 
-// DefaultCallback default callbacks defined by gorm
+// DefaultCallback default callbacks defined by orm
 var DefaultCallback = &Callback{}
 
 // Callback is a struct that contains all CRUD callbacks
@@ -45,7 +45,7 @@ func (c *Callback) clone() *Callback {
 }
 
 // Create could be used to register callbacks for creating object
-//     db.Callback().Create().After("gorm:create").Register("plugin:run_after_create", func(*Scope) {
+//     db.Callback().Create().After("orm:create").Register("plugin:run_after_create", func(*Scope) {
 //       // business logic
 //       ...
 //
@@ -92,9 +92,9 @@ func (cp *CallbackProcessor) Before(callbackName string) *CallbackProcessor {
 // Register a new callback, refer `Callbacks.Create`
 func (cp *CallbackProcessor) Register(callbackName string, callback func(scope *Scope)) {
 	if cp.kind == "row_query" {
-		if cp.before == "" && cp.after == "" && callbackName != "gorm:row_query" {
-			log.Printf("Registing RowQuery callback %v without specify order with Before(), After(), applying Before('gorm:row_query') by default for compatibility...\n", callbackName)
-			cp.before = "gorm:row_query"
+		if cp.before == "" && cp.after == "" && callbackName != "orm:row_query" {
+			log.Printf("Registing RowQuery callback %v without specify order with Before(), After(), applying Before('orm:row_query') by default for compatibility...\n", callbackName)
+			cp.before = "orm:row_query"
 		}
 	}
 
@@ -105,7 +105,7 @@ func (cp *CallbackProcessor) Register(callbackName string, callback func(scope *
 }
 
 // Remove a registered callback
-//     db.Callback().Create().Remove("gorm:update_time_stamp_when_create")
+//     db.Callback().Create().Remove("orm:update_time_stamp_when_create")
 func (cp *CallbackProcessor) Remove(callbackName string) {
 	log.Printf("[info] removing callback `%v` from %v\n", callbackName, fileWithLineNum())
 	cp.name = callbackName
@@ -115,7 +115,7 @@ func (cp *CallbackProcessor) Remove(callbackName string) {
 }
 
 // Replace a registered callback with new callback
-//     db.Callback().Create().Replace("gorm:update_time_stamp_when_create", func(*Scope) {
+//     db.Callback().Create().Replace("orm:update_time_stamp_when_create", func(*Scope) {
 //		   scope.SetColumn("Created", now)
 //		   scope.SetColumn("Updated", now)
 //     })
@@ -129,7 +129,7 @@ func (cp *CallbackProcessor) Replace(callbackName string, callback func(scope *S
 }
 
 // Get registered callback
-//    db.Callback().Create().Get("gorm:create")
+//    db.Callback().Create().Get("orm:create")
 func (cp *CallbackProcessor) Get(callbackName string) (callback func(scope *Scope)) {
 	for _, p := range cp.parent.processors {
 		if p.name == callbackName && p.kind == cp.kind && !cp.remove {

@@ -4,15 +4,15 @@ box: golang
 services:
     - id: mariadb:10.0
       env:
-          MYSQL_DATABASE: gorm
-          MYSQL_USER: gorm
-          MYSQL_PASSWORD: gorm
+          MYSQL_DATABASE: orm
+          MYSQL_USER: orm
+          MYSQL_PASSWORD: orm
           MYSQL_RANDOM_ROOT_PASSWORD: "yes"
     - id: postgres
       env:
-          POSTGRES_USER: gorm
-          POSTGRES_PASSWORD: gorm
-          POSTGRES_DB: gorm
+          POSTGRES_USER: orm
+          POSTGRES_PASSWORD: orm
+          POSTGRES_DB: orm
 
 # The steps that will be executed in the build pipeline
 build:
@@ -45,9 +45,9 @@ build:
         - script:
                 name: test mysql
                 code: |
-                    GORM_DIALECT=mysql GORM_DBADDRESS=mariadb:3306 go test ./...
+                    ORM_DIALECT=mysql ORM_DBADDRESS=mariadb:3306 go test ./...
 
         - script:
                 name: test postgres
                 code: |
-                    GORM_DIALECT=postgres GORM_DBHOST=postgres go test ./...
+                    ORM_DIALECT=postgres ORM_DBHOST=postgres go test ./...

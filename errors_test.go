@@ -1,16 +1,16 @@
-package gorm_test
+package orm_test
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
 func TestErrorsCanBeUsedOutsideGorm(t *testing.T) {
 	errs := []error{errors.New("First"), errors.New("Second")}
 
-	gErrs := gorm.Errors(errs)
+	gErrs := orm.Errors(errs)
 	gErrs = gErrs.Add(errors.New("Third"))
 	gErrs = gErrs.Add(gErrs)
 

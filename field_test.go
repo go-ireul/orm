@@ -1,13 +1,13 @@
-package gorm_test
+package orm_test
 
 import (
 	"testing"
 
-	"github.com/jinzhu/gorm"
+	"ireul.com/orm"
 )
 
 type CalculateField struct {
-	gorm.Model
+	orm.Model
 	Name     string
 	Children []CalculateFieldChild
 	Category CalculateFieldCategory
@@ -19,13 +19,13 @@ type EmbeddedField struct {
 }
 
 type CalculateFieldChild struct {
-	gorm.Model
+	orm.Model
 	CalculateFieldID uint
 	Name             string
 }
 
 type CalculateFieldCategory struct {
-	gorm.Model
+	orm.Model
 	CalculateFieldID uint
 	Name             string
 }
