@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"database/sql/driver"
 
+	_ "github.com/lib/pq"
+	"github.com/lib/pq/hstore"
 	"encoding/json"
 	"errors"
 	"fmt"
-	_ "github.com/lib/pq"
-	"github.com/lib/pq/hstore"
 )
 
 type Hstore map[string]*string
@@ -63,6 +63,9 @@ type Jsonb struct {
 
 // Value get value of Jsonb
 func (j Jsonb) Value() (driver.Value, error) {
+	if len(j.RawMessage) == 0 {
+		return nil, nil
+	}
 	return j.MarshalJSON()
 }
 

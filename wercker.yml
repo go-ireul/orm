@@ -2,17 +2,72 @@
 box: golang
 
 services:
-    - id: mariadb:10.0
+    - name: mariadb
+      id: mariadb:latest
       env:
           MYSQL_DATABASE: orm
           MYSQL_USER: orm
           MYSQL_PASSWORD: orm
           MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-    - id: postgres
+    - name: mysql57
+      id: mysql:5.7
+      env:
+          MYSQL_DATABASE: orm
+          MYSQL_USER: orm
+          MYSQL_PASSWORD: orm
+          MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    - name: mysql56
+      id: mysql:5.6
+      env:
+          MYSQL_DATABASE: orm
+          MYSQL_USER: orm
+          MYSQL_PASSWORD: orm
+          MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    - name: mysql55
+      id: mysql:5.5
+      env:
+          MYSQL_DATABASE: orm
+          MYSQL_USER: orm
+          MYSQL_PASSWORD: orm
+          MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    - name: postgres
+      id: postgres:latest
       env:
           POSTGRES_USER: orm
           POSTGRES_PASSWORD: orm
           POSTGRES_DB: orm
+    - name: postgres96
+      id: postgres:9.6
+      env:
+          POSTGRES_USER: orm
+          POSTGRES_PASSWORD: orm
+          POSTGRES_DB: orm
+    - name: postgres95
+      id: postgres:9.5
+      env:
+          POSTGRES_USER: orm
+          POSTGRES_PASSWORD: orm
+          POSTGRES_DB: orm
+    - name: postgres94
+      id: postgres:9.4
+      env:
+          POSTGRES_USER: orm
+          POSTGRES_PASSWORD: orm
+          POSTGRES_DB: orm
+    - name: postgres93
+      id: postgres:9.3
+      env:
+          POSTGRES_USER: orm
+          POSTGRES_PASSWORD: orm
+          POSTGRES_DB: orm
+    - name: mssql
+      id: mcmoe/mssqldocker:latest
+      env:
+        ACCEPT_EULA: Y
+        SA_PASSWORD: LoremIpsum86
+        MSSQL_DB: orm
+        MSSQL_USER: orm
+        MSSQL_PASSWORD: LoremIpsum86
 
 # The steps that will be executed in the build pipeline
 build:
@@ -43,11 +98,51 @@ build:
                     go test ./...
 
         - script:
-                name: test mysql
+                name: test mariadb
                 code: |
-                    ORM_DIALECT=mysql ORM_DBADDRESS=mariadb:3306 go test ./...
+                    orm_DIALECT=mysql orm_DSN="orm:orm@tcp(mariadb:3306)/orm?charset=utf8&parseTime=True" go test ./...
+
+        - script:
+                name: test mysql5.7
+                code: |
+                    orm_DIALECT=mysql orm_DSN="orm:orm@tcp(mysql57:3306)/orm?charset=utf8&parseTime=True" go test ./...
+
+        - script:
+                name: test mysql5.6
+                code: |
+                    orm_DIALECT=mysql orm_DSN="orm:orm@tcp(mysql56:3306)/orm?charset=utf8&parseTime=True" go test ./...
+
+        - script:
+                name: test mysql5.5
+                code: |
+                    orm_DIALECT=mysql orm_DSN="orm:orm@tcp(mysql55:3306)/orm?charset=utf8&parseTime=True" go test ./...
 
         - script:
                 name: test postgres
                 code: |
-                    ORM_DIALECT=postgres ORM_DBHOST=postgres go test ./...
+                    orm_DIALECT=postgres orm_DSN="host=postgres user=orm password=orm DB.name=orm port=5432 sslmode=disable" go test ./...
+
+        - script:
+                name: test postgres96
+                code: |
+                    orm_DIALECT=postgres orm_DSN="host=postgres96 user=orm password=orm DB.name=orm port=5432 sslmode=disable" go test ./...
+
+        - script:
+                name: test postgres95
+                code: |
+                    orm_DIALECT=postgres orm_DSN="host=postgres95 user=orm password=orm DB.name=orm port=5432 sslmode=disable" go test ./...
+
+        - script:
+                name: test postgres94
+                code: |
+                    orm_DIALECT=postgres orm_DSN="host=postgres94 user=orm password=orm DB.name=orm port=5432 sslmode=disable" go test ./...
+
+        - script:
+                name: test postgres93
+                code: |
+                    orm_DIALECT=postgres orm_DSN="host=postgres93 user=orm password=orm DB.name=orm port=5432 sslmode=disable" go test ./...
+
+        - script:
+                name: test mssql
+                code: |
+                    orm_DIALECT=mssql orm_DSN="sqlserver://orm:LoremIpsum86@mssql:1433?database=orm" go test ./...

@@ -7,7 +7,7 @@ import (
 	"ireul.com/orm"
 )
 
-func TestErrorsCanBeUsedOutsideGorm(t *testing.T) {
+func TestErrorsCanBeUsedOutsideOrm(t *testing.T) {
 	errs := []error{errors.New("First"), errors.New("Second")}
 
 	gErrs := orm.Errors(errs)

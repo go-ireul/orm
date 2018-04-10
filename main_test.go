@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/erikstmartin/go-testdb"
 	"ireul.com/now"
 	"ireul.com/orm"
 	_ "ireul.com/orm/dialects/mssql"
@@ -35,27 +36,20 @@ func init() {
 }
 
 func OpenTestConnection() (db *orm.DB, err error) {
-	switch os.Getenv("ORM_DIALECT") {
+	dbDSN := os.Getenv("orm_DSN")
+	switch os.Getenv("orm_DIALECT") {
 	case "mysql":
-		// CREATE USER 'orm'@'localhost' IDENTIFIED BY 'orm';
-		// CREATE DATABASE orm;
-		// GRANT ALL ON orm.* TO 'orm'@'localhost';
 		fmt.Println("testing mysql...")
-		dbhost := os.Getenv("ORM_DBADDRESS")
-		if dbhost != "" {
-			dbhost = fmt.Sprintf("tcp(%v)", dbhost)
+		if dbDSN == "" {
+			dbDSN = "orm:orm@tcp(localhost:9910)/orm?charset=utf8&parseTime=True"
 		}
-		db, err = orm.Open("mysql", fmt.Sprintf("orm:orm@%v/orm?charset=utf8&parseTime=True", dbhost))
+		db, err = orm.Open("mysql", dbDSN)
 	case "postgres":
 		fmt.Println("testing postgres...")
-		dbhost := os.Getenv("ORM_DBHOST")
-		if dbhost != "" {
-			dbhost = fmt.Sprintf("host=%v ", dbhost)
+		if dbDSN == "" {
+			dbDSN = "user=orm password=orm DB.name=orm port=9920 sslmode=disable"
 		}
-		db, err = orm.Open("postgres", fmt.Sprintf("%vuser=orm password=orm DB.name=orm sslmode=disable", dbhost))
-	case "foundation":
-		fmt.Println("testing foundation...")
-		db, err = orm.Open("foundation", "dbname=orm port=15432 sslmode=disable")
+		db, err = orm.Open("postgres", dbDSN)
 	case "mssql":
 		// CREATE LOGIN orm WITH PASSWORD = 'LoremIpsum86';
 		// CREATE DATABASE orm;
@@ -63,7 +57,10 @@ func OpenTestConnection() (db *orm.DB, err error) {
 		// CREATE USER orm FROM LOGIN orm;
 		// sp_changedbowner 'orm';
 		fmt.Println("testing mssql...")
-		db, err = orm.Open("mssql", "sqlserver://orm:LoremIpsum86@localhost:1433?database=orm")
+		if dbDSN == "" {
+			dbDSN = "sqlserver://orm:LoremIpsum86@localhost:9930?database=orm"
+		}
+		db, err = orm.Open("mssql", dbDSN)
 	default:
 		fmt.Println("testing sqlite3...")
 		db, err = orm.Open("sqlite3", filepath.Join(os.TempDir(), "orm.db"))
@@ -71,8 +68,10 @@ func OpenTestConnection() (db *orm.DB, err error) {
 
 	// db.SetLogger(Logger{log.New(os.Stdout, "\r\n", 0)})
 	// db.SetLogger(log.New(os.Stdout, "\r\n", 0))
-	if os.Getenv("DEBUG") == "true" {
+	if debug := os.Getenv("DEBUG"); debug == "true" {
 		db.LogMode(true)
+	} else if debug == "false" {
+		db.LogMode(false)
 	}
 
 	db.DB().SetMaxIdleConns(10)
@@ -632,6 +631,47 @@ func TestQueryBuilderSubselectInWhere(t *testing.T) {
 	}
 }
 
+func TestQueryBuilderRawQueryWithSubquery(t *testing.T) {
+	user := User{Name: "subquery_test_user1", Age: 10}
+	DB.Save(&user)
+	user = User{Name: "subquery_test_user2", Age: 11}
+	DB.Save(&user)
+	user = User{Name: "subquery_test_user3", Age: 12}
+	DB.Save(&user)
+
+	var count int
+	err := DB.Raw("select count(*) from (?) tmp",
+		DB.Table("users").
+			Select("name").
+			Where("age >= ? and name in (?)", 10, []string{"subquery_test_user1", "subquery_test_user2"}).
+			Group("name").
+			QueryExpr(),
+	).Count(&count).Error
+
+	if err != nil {
+		t.Errorf("Expected to get no errors, but got %v", err)
+	}
+	if count != 2 {
+		t.Errorf("Row count must be 2, instead got %d", count)
+	}
+
+	err = DB.Raw("select count(*) from (?) tmp",
+		DB.Table("users").
+			Select("name").
+			Where("name LIKE ?", "subquery_test%").
+			Not("age <= ?", 10).Not("name in (?)", []string{"subquery_test_user1", "subquery_test_user2"}).
+			Group("name").
+			QueryExpr(),
+	).Count(&count).Error
+
+	if err != nil {
+		t.Errorf("Expected to get no errors, but got %v", err)
+	}
+	if count != 1 {
+		t.Errorf("Row count must be 1, instead got %d", count)
+	}
+}
+
 func TestQueryBuilderSubselectInHaving(t *testing.T) {
 	user := User{Name: "query_expr_having_ruser1", Email: "root@user1.com", Age: 64}
 	DB.Save(&user)
@@ -653,7 +693,7 @@ func TestQueryBuilderSubselectInHaving(t *testing.T) {
 
 func DialectHasTzSupport() bool {
 	// NB: mssql and FoundationDB do not support time zones.
-	if dialect := os.Getenv("ORM_DIALECT"); dialect == "foundation" {
+	if dialect := os.Getenv("orm_DIALECT"); dialect == "foundation" {
 		return false
 	}
 	return true
@@ -706,7 +746,7 @@ func TestHstore(t *testing.T) {
 		Bulk postgres.Hstore
 	}
 
-	if dialect := os.Getenv("ORM_DIALECT"); dialect != "postgres" {
+	if dialect := os.Getenv("orm_DIALECT"); dialect != "postgres" {
 		t.Skip()
 	}
 
@@ -781,7 +821,7 @@ func TestCompatibilityMode(t *testing.T) {
 
 func TestOpenExistingDB(t *testing.T) {
 	DB.Save(&User{Name: "jnfeinstein"})
-	dialect := os.Getenv("ORM_DIALECT")
+	dialect := os.Getenv("orm_DIALECT")
 
 	db, err := orm.Open(dialect, DB.DB())
 	if err != nil {
@@ -860,7 +900,7 @@ func TestBlockGlobalUpdate(t *testing.T) {
 	}
 }
 
-func BenchmarkGorm(b *testing.B) {
+func BenchmarkOrm(b *testing.B) {
 	b.N = 2000
 	for x := 0; x < b.N; x++ {
 		e := strconv.Itoa(x) + "benchmark@example.org"

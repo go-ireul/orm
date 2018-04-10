@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  mysql:
+    image: 'mysql:latest'
+    ports:
+      - 9910:3306
+    environment:
+      - MYSQL_DATABASE=orm
+      - MYSQL_USER=orm
+      - MYSQL_PASSWORD=orm
+      - MYSQL_RANDOM_ROOT_PASSWORD="yes"
+  postgres:
+    image: 'postgres:latest'
+    ports:
+      - 9920:5432
+    environment:
+      - POSTGRES_USER=orm
+      - POSTGRES_DB=orm
+      - POSTGRES_PASSWORD=orm
+  mssql:
+    image: 'mcmoe/mssqldocker:latest'
+    ports:
+      - 9930:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=LoremIpsum86
+      - MSSQL_DB=orm
+      - MSSQL_USER=orm
+      - MSSQL_PASSWORD=LoremIpsum86

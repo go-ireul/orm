@@ -825,7 +825,7 @@ func TestNestedPreload12(t *testing.T) {
 }
 
 func TestManyToManyPreloadWithMultiPrimaryKeys(t *testing.T) {
-	if dialect := os.Getenv("ORM_DIALECT"); dialect == "" || dialect == "sqlite" || dialect == "mssql" {
+	if dialect := os.Getenv("orm_DIALECT"); dialect == "" || dialect == "sqlite" || dialect == "mssql" {
 		return
 	}
 
@@ -1624,6 +1624,48 @@ func TestPrefixedPreloadDuplication(t *testing.T) {
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %s; want %s", toJSONString(got), toJSONString(want))
+	}
+}
+
+func TestPreloadManyToManyCallbacks(t *testing.T) {
+	type (
+		Level2 struct {
+			ID   uint
+			Name string
+		}
+		Level1 struct {
+			ID      uint
+			Name    string
+			Level2s []Level2 `orm:"many2many:level1_level2s;AssociationForeignKey:ID;ForeignKey:ID"`
+		}
+	)
+
+	DB.DropTableIfExists("level1_level2s")
+	DB.DropTableIfExists(new(Level1))
+	DB.DropTableIfExists(new(Level2))
+
+	if err := DB.AutoMigrate(new(Level1), new(Level2)).Error; err != nil {
+		t.Error(err)
+	}
+
+	lvl := Level1{
+		Name: "l1",
+		Level2s: []Level2{
+			Level2{Name: "l2-1"}, Level2{Name: "l2-2"},
+		},
+	}
+	DB.Save(&lvl)
+
+	called := 0
+
+	DB.Callback().Query().After("orm:query").Register("TestPreloadManyToManyCallbacks", func(scope *orm.Scope) {
+		called = called + 1
+	})
+
+	DB.Preload("Level2s").First(&Level1{}, "id = ?", lvl.ID)
+
+	if called != 3 {
+		t.Errorf("Wanted callback to be called 3 times but got %d", called)
 	}
 }
 

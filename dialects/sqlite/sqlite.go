@@ -1,3 +1,3 @@
-package sqlite3
+package sqlite
 
 import _ "ireul.com/sqlite3"
